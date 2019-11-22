@@ -1,0 +1,24 @@
+{
+  "name": "ts-readme-generator",
+  "version": "0.0.0",
+  "repository": "LinusU/ts-readme-generator",
+  "license": "MIT",
+  "files": [
+    "bin.js"
+  ],
+  "bin": "bin.js",
+  "scripts": {
+    "test": "standard && mocha"
+  },
+  "dependencies": {
+    "typescript": "^3.7.2"
+  },
+  "devDependencies": {
+    "execa": "^3.3.0",
+    "mocha": "^6.2.2",
+    "standard": "^14.3.1"
+  },
+  "engines": {
+    "node": ">=12"
+  }
+}
