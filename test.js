@@ -23,9 +23,16 @@ describe('Generate Readme from TypeScript', () => {
       const before = (await fs.readFile(path.join(cwd, 'readme.md'))).toString()
 
       try {
+        // Should report that change is needed
+        await assert.rejects(execa(bin, ['--check'], { cwd, stdio: 'ignore' }))
+
+        // Should update the readme
         await execa(bin, { cwd, stdio: ['ignore', 'ignore', 'inherit'] })
         const actual = (await fs.readFile(path.join(cwd, 'readme.md'))).toString()
         assert.strictEqual(actual, expected)
+
+        // Should report that everything is up to date
+        await execa(bin, ['--check'], { cwd, stdio: ['ignore', 'ignore', 'inherit'] })
       } finally {
         await fs.writeFile(path.join(cwd, 'readme.md'), before)
       }
