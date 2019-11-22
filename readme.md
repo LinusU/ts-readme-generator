@@ -17,3 +17,9 @@ Make sure that your `readme.md` contains a `## API` section (or `## Props` if it
 ```sh
 ts-readme-generator
 ```
+
+You can also run the script in "check mode" to make it exit with a non-zero status if the documentation isn't up to date.
+
+```sh
+ts-readme-generator --check
+```

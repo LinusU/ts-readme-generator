@@ -2,13 +2,29 @@
 
 const assert = require('assert')
 const fs = require('fs').promises
+const neodoc = require('neodoc')
 const ts = require('typescript')
 
+class UserError extends Error {}
+
+const usage = `
+Generate Readme from TypeScript
+
+usage:
+  ts-readme-generator [options]
+
+options:
+  --check      Instead of changing the readme, exit with a non-zero exit code if update is needed.
+  --help       Show this help, then exit.
+  --version    Print the current version, then exit.
+`
+
 /**
+ * @param {boolean} checkMode
  * @param {string} heading
  * @param {string} body
  */
-async function patchReadme (heading, body) {
+async function patchReadme (checkMode, heading, body) {
   const content = (await fs.readFile('readme.md')).toString()
 
   let first = true
@@ -35,7 +51,13 @@ async function patchReadme (heading, body) {
     result = result.trim() + '\n\n## ' + heading + '\n\n' + body
   }
 
-  await fs.writeFile('readme.md', result.trim() + '\n')
+  if (result.trim() !== content.trim()) {
+    if (checkMode) {
+      throw new UserError(`Section "${heading}" needs update`)
+    }
+
+    await fs.writeFile('readme.md', result.trim() + '\n')
+  }
 }
 
 function getTypeName (type, fullName = true) {
@@ -57,7 +79,7 @@ function getTypeName (type, fullName = true) {
 /**
  * @param {import('typescript').InterfaceDeclaration} props
  */
-async function formatReactComponentProps (props) {
+function formatReactComponentProps (props) {
   let first = true
   let result = ''
 
@@ -81,13 +103,13 @@ async function formatReactComponentProps (props) {
     result += member.jsDoc[0].comment + '\n'
   }
 
-  await patchReadme('Options', result)
+  return result
 }
 
 /**
  * @param {import('typescript').ExportAssignment} node
  */
-async function formatSingleExportFunction (node) {
+function formatSingleExportFunction (node) {
   const name = ts.getNameOfDeclaration(node).escapedText
   const func = node.parent.getChildAt(0).getChildren().find(a => a.kind === ts.SyntaxKind.FunctionDeclaration && a.name.escapedText === name)
   const parameters = /** @type {import('typescript').ParameterDeclaration[]} */ (func.parameters || [])
@@ -142,10 +164,13 @@ async function formatSingleExportFunction (node) {
     }
   }
 
-  await patchReadme('API', result)
+  return result
 }
 
 async function main () {
+  const args = neodoc.run(usage, { laxPlacement: true })
+  const checkMode = Boolean(args['--check'])
+
   const sourceText = (await fs.readFile('index.d.ts')).toString()
   const file = ts.createSourceFile('index.d.ts', sourceText, ts.ScriptTarget.ESNext, true)
   const children = file.getChildAt(0).getChildren()
@@ -154,13 +179,20 @@ async function main () {
 
   // React Component
   const props = interfaces.find(child => child.name.escapedText === 'Props')
-  if (props) await formatReactComponentProps(props)
+  if (props) {
+    const text = formatReactComponentProps(props)
+    await patchReadme(checkMode, 'Options', text)
+  }
 
+  // Single Exported Function
   const exportAssignments = /** @type {import('typescript').ExportAssignment[]} */ (children.filter(child => child.kind === ts.SyntaxKind.ExportAssignment))
-  if (exportAssignments[0] && exportAssignments[0].isExportEquals) formatSingleExportFunction(exportAssignments[0])
+  if (exportAssignments[0] && exportAssignments[0].isExportEquals) {
+    const text = formatSingleExportFunction(exportAssignments[0])
+    await patchReadme(checkMode, 'API', text)
+  }
 }
 
 main().catch((err) => {
   process.exitCode = 1
-  console.error(err.stack)
+  console.error((err instanceof UserError) ? `\n\u001b[1m\u001b[31m${err.message}\u001b[39m\u001b[22m` : err.stack)
 })
