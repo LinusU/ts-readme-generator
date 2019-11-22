@@ -77,6 +77,13 @@ function getTypeName (type, fullName = true) {
 }
 
 /**
+ * @param {readonly import('typescript').JSDocTag[]} jsDoc
+ */
+function getJsDocComment (jsDoc) {
+  return ((jsDoc && jsDoc[0] && jsDoc[0].comment) || '').replace(/^- /, '')
+}
+
+/**
  * @param {import('typescript').InterfaceDeclaration} props
  */
 function formatReactComponentProps (props) {
@@ -146,7 +153,7 @@ function formatSingleExportFunction (node) {
 
   for (const p of parameters) {
     const isReference = p.type.typeName && p.type.typeName.kind === ts.SyntaxKind.QualifiedName
-    const comment = (ts.getJSDocParameterTags(p).length && ts.getJSDocParameterTags(p)[0].comment) || ''
+    const comment = getJsDocComment(ts.getJSDocParameterTags(p))
     result += `- \`${p.name.escapedText}\` (${isReference ? 'object' : getTypeName(p.type)}, ${p.questionToken ? 'optional' : 'required'})${comment ? ' - ' : ''}${comment}\n`
 
     if (isReference) {
@@ -158,7 +165,7 @@ function formatSingleExportFunction (node) {
       const childProperties = /** @type {import('typescript').PropertySignature[]} */ (foo.members.filter(m => m.kind === ts.SyntaxKind.PropertySignature))
 
       for (const cp of childProperties) {
-        const comment = (cp.jsDoc && cp.jsDoc[0] && cp.jsDoc[0].comment) || ''
+        const comment = getJsDocComment(cp.jsDoc)
         result += `  - \`${cp.name.escapedText}\` (${getTypeName(cp.type)}, ${cp.questionToken ? 'optional' : 'required'})${comment ? ' - ' : ''}${comment}\n`
       }
     }

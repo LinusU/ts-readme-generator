@@ -8,7 +8,7 @@ declare namespace serverAcceptsEmail {
 }
 
 /**
- * @param email Email address to test
+ * @param email - Email address to test
  */
 declare function serverAcceptsEmail (email: string, options?: serverAcceptsEmail.Options): Promise<boolean>
 
