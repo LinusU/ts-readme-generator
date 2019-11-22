@@ -12,6 +12,7 @@ async function patchReadme (heading, body) {
   const content = (await fs.readFile('readme.md')).toString()
 
   let first = true
+  let found = false
   let result = ''
   const parts = content.split('\n## ')
 
@@ -23,10 +24,15 @@ async function patchReadme (heading, body) {
     }
 
     if (part.startsWith(heading + '\n')) {
+      found = true
       result += heading + '\n\n' + body
     } else {
       result += part
     }
+  }
+
+  if (!found) {
+    result = result.trim() + '\n\n## ' + heading + '\n\n' + body
   }
 
   await fs.writeFile('readme.md', result.trim() + '\n')

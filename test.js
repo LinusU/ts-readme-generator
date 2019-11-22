@@ -10,6 +10,7 @@ const bin = path.join(__dirname, 'bin.js')
 const fixtures = [
   'react-component-a',
   'react-component-b',
+  'react-component-c',
   'server-accepts-email'
 ]
 
