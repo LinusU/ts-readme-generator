@@ -188,6 +188,11 @@ function formatSingleExportFunction (node) {
   const returnTag = ts.getJSDocReturnTag(func)
   result += `- returns ${formatTypeName(returnType)}${returnTag ? ` - ${returnTag.comment}` : ''}\n`
 
+  const comment = getJsDocComment(func.jsDoc)
+  if (comment) {
+    result += `\n${comment}\n`
+  }
+
   return result
 }
 
