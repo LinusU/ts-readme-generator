@@ -145,7 +145,7 @@ function formatSingleExportFunction (node) {
   }
   result += end
 
-  result += `): ${returnType}\`\n`
+  result += ')`\n'
 
   if (parameters.length) {
     result += '\n'
@@ -170,6 +170,9 @@ function formatSingleExportFunction (node) {
       }
     }
   }
+
+  const returnTag = ts.getJSDocReturnTag(func)
+  result += `- returns \`${returnType}\`${returnTag ? ` - ${returnTag.comment}` : ''}\n`
 
   return result
 }
