@@ -19,6 +19,11 @@ options:
   --version    Print the current version, then exit.
 `
 
+const builtInTypeLinks = new Map([
+  ['ImageData', 'https://developer.mozilla.org/en-US/docs/Web/API/ImageData'],
+  ['Uint8Array', 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array']
+])
+
 /**
  * @param {boolean} checkMode
  * @param {string} heading
@@ -76,11 +81,19 @@ function getTypeName (type, fullName = true) {
   assert(false, 'not implemented')
 }
 
+function formatTypeName (name) {
+  if (builtInTypeLinks.has(name)) {
+    return `[\`${name}\`](${builtInTypeLinks.get(name)})`
+  }
+
+  return `\`${name}\``
+}
+
 /**
  * @param {readonly import('typescript').JSDocTag[]} jsDoc
  */
 function getJsDocComment (jsDoc) {
-  return ((jsDoc && jsDoc[0] && jsDoc[0].comment) || '').replace(/^- /, '')
+  return ((jsDoc && jsDoc[0] && jsDoc[0].comment) || '')
 }
 
 /**
@@ -104,10 +117,10 @@ function formatReactComponentProps (props) {
     result += '\n'
     if (member.questionToken) result += '- optional\n'
     if (!member.questionToken) result += '- required\n'
-    if (typeName) result += `- type: \`${typeName}\`\n`
+    if (typeName) result += `- type: ${formatTypeName(typeName)}\n`
     if (defaultValue) result += `- default: \`${defaultValue.comment}\`\n`
     result += '\n'
-    result += member.jsDoc[0].comment + '\n'
+    result += getJsDocComment(member.jsDoc) + '\n'
   }
 
   return result
@@ -153,26 +166,27 @@ function formatSingleExportFunction (node) {
 
   for (const p of parameters) {
     const isReference = p.type.typeName && p.type.typeName.kind === ts.SyntaxKind.QualifiedName
-    const comment = getJsDocComment(ts.getJSDocParameterTags(p))
-    result += `- \`${p.name.escapedText}\` (${isReference ? 'object' : getTypeName(p.type)}, ${p.questionToken ? 'optional' : 'required'})${comment ? ' - ' : ''}${comment}\n`
+    const comment = getJsDocComment(ts.getJSDocParameterTags(p)).replace(/^- /, '')
+    const typeName = isReference ? 'object' : getTypeName(p.type)
+    result += `- \`${p.name.escapedText}\` (${formatTypeName(typeName)}, ${p.questionToken ? 'optional' : 'required'})${comment ? ' - ' : ''}${comment}\n`
 
     if (isReference) {
       const namespaceName = p.type.typeName.left.escapedText
-      const namespace = /** @type {import('typescript').NamespaceDeclaration} */ (node.parent.getChildAt(0).getChildren().find(a => a.kind === ts.SyntaxKind.ModuleDeclaration && a.name.escapedText === namespaceName))
+      const namespace = /** @type {import('typescript').NamespaceDeclaration} */ (func.parent.getChildAt(0).getChildren().find(a => a.kind === ts.SyntaxKind.ModuleDeclaration && a.name.escapedText === namespaceName))
       const statements = /** @type {import('typescript').ModuleBlock['statements']} */ (namespace.body.statements)
 
       const foo = statements.find(s => s.name.escapedText === p.type.typeName.right.escapedText)
       const childProperties = /** @type {import('typescript').PropertySignature[]} */ (foo.members.filter(m => m.kind === ts.SyntaxKind.PropertySignature))
 
       for (const cp of childProperties) {
-        const comment = getJsDocComment(cp.jsDoc)
-        result += `  - \`${cp.name.escapedText}\` (${getTypeName(cp.type)}, ${cp.questionToken ? 'optional' : 'required'})${comment ? ' - ' : ''}${comment}\n`
+        const comment = getJsDocComment(cp.jsDoc).replace(/^- /, '')
+        result += `  - \`${cp.name.escapedText}\` (${formatTypeName(getTypeName(cp.type))}, ${cp.questionToken ? 'optional' : 'required'})${comment ? ' - ' : ''}${comment}\n`
       }
     }
   }
 
   const returnTag = ts.getJSDocReturnTag(func)
-  result += `- returns \`${returnType}\`${returnTag ? ` - ${returnTag.comment}` : ''}\n`
+  result += `- returns ${formatTypeName(returnType)}${returnTag ? ` - ${returnTag.comment}` : ''}\n`
 
   return result
 }
