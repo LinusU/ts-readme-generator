@@ -8,6 +8,7 @@ const path = require('path')
 const bin = path.join(__dirname, 'bin.js')
 
 const fixtures = [
+  'cwasm-lodepng',
   'react-component-a',
   'react-component-b',
   'react-component-c',

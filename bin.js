@@ -127,13 +127,11 @@ function formatReactComponentProps (props) {
 }
 
 /**
- * @param {import('typescript').ExportAssignment} node
+ * @param {import('typescript').FunctionDeclaration} func
  */
-function formatSingleExportFunction (node) {
-  const name = ts.getNameOfDeclaration(node).escapedText
-  const func = node.parent.getChildAt(0).getChildren().find(a => a.kind === ts.SyntaxKind.FunctionDeclaration && a.name.escapedText === name)
-  const parameters = /** @type {import('typescript').ParameterDeclaration[]} */ (func.parameters || [])
-
+function formatFunction (func) {
+  const name = func.name.escapedText
+  const parameters = func.parameters || []
   const returnType = getTypeName(func.type)
 
   let result = ''
@@ -196,6 +194,23 @@ function formatSingleExportFunction (node) {
   return result
 }
 
+/**
+ * @param {import('typescript').ExportAssignment} node
+ */
+function formatSingleExportFunction (node) {
+  const name = ts.getNameOfDeclaration(node).escapedText
+  const func = node.parent.getChildAt(0).getChildren().find(a => a.kind === ts.SyntaxKind.FunctionDeclaration && a.name.escapedText === name)
+
+  return formatFunction(func)
+}
+
+/**
+ * @param {import('typescript').FunctionDeclaration[]} nodes
+ */
+function formatMultipleExportFunction (nodes) {
+  return nodes.map(formatFunction).join('\n\n')
+}
+
 async function main () {
   const args = neodoc.run(usage, { laxPlacement: true })
   const checkMode = Boolean(args['--check'])
@@ -217,6 +232,13 @@ async function main () {
   const exportAssignments = /** @type {import('typescript').ExportAssignment[]} */ (children.filter(child => child.kind === ts.SyntaxKind.ExportAssignment))
   if (exportAssignments[0] && exportAssignments[0].isExportEquals) {
     const text = formatSingleExportFunction(exportAssignments[0])
+    await patchReadme(checkMode, 'API', text)
+  }
+
+  // Multiple Exported Functions
+  const functionDeclarations = /** @type {import('typescript').FunctionDeclaration[]} */ (children.filter(child => child.kind === ts.SyntaxKind.FunctionDeclaration && child.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword)))
+  if (functionDeclarations.length) {
+    const text = formatMultipleExportFunction(functionDeclarations)
     await patchReadme(checkMode, 'API', text)
   }
 }
