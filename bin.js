@@ -65,28 +65,40 @@ async function patchReadme (checkMode, heading, body) {
   }
 }
 
-function getTypeName (type, fullName = true) {
-  if (fullName && type.typeArguments) {
-    assert(type.typeArguments.length === 1, 'not implemented')
-    return `${getTypeName(type, false)}<${getTypeName(type.typeArguments[0])}>`
+function getFormattedTypeName (type) {
+  function getPlainName (type) {
+    if (type.typeName) return type.typeName.escapedText
+    if (type.kind === ts.SyntaxKind.BooleanKeyword) return 'boolean'
+    if (type.kind === ts.SyntaxKind.NumberKeyword) return 'number'
+    if (type.kind === ts.SyntaxKind.StringKeyword) return 'string'
   }
 
-  // if (type.typeName && type.typeName.kind === ts.SyntaxKind.QualifiedName) return type.typeName.right.escapedText
+  function getGeneric (type) {
+    if (type.typeArguments) {
+      assert(type.typeArguments.length === 1, 'not implemented')
+      return `\`${getPlainName(type)}<${getPlainName(type.typeArguments[0])}>\``
+    }
+  }
 
-  if (type.typeName) return type.typeName.escapedText
-  if (type.kind === ts.SyntaxKind.BooleanKeyword) return 'boolean'
-  if (type.kind === ts.SyntaxKind.NumberKeyword) return 'number'
-  if (type.kind === ts.SyntaxKind.StringKeyword) return 'string'
+  function getUnion (type) {
+    if (type.kind === ts.SyntaxKind.UnionType) {
+      assert(type.types.length === 2, 'not implemented')
+      return `\`${getPlainName(type.types[0])}\` or \`${getPlainName(type.types[1])}\``
+    }
+  }
+
+  let result
+
+  result = getGeneric(type)
+  if (result) return result
+
+  result = getUnion(type)
+  if (result) return result
+
+  result = getPlainName(type)
+  if (result) return builtInTypeLinks.has(result) ? `[\`${result}\`](${builtInTypeLinks.get(result)})` : `\`${result}\``
 
   assert(false, 'not implemented')
-}
-
-function formatTypeName (name) {
-  if (builtInTypeLinks.has(name)) {
-    return `[\`${name}\`](${builtInTypeLinks.get(name)})`
-  }
-
-  return `\`${name}\``
 }
 
 /**
@@ -111,13 +123,13 @@ function formatReactComponentProps (props) {
     }
 
     const defaultValue = (member.jsDoc[0].tags || []).find(tag => tag.tagName.escapedText === 'default')
-    const typeName = getTypeName(member.type)
+    const typeName = getFormattedTypeName(member.type)
 
     result += `### \`${member.name.escapedText}\`\n`
     result += '\n'
     if (member.questionToken) result += '- optional\n'
     if (!member.questionToken) result += '- required\n'
-    if (typeName) result += `- type: ${formatTypeName(typeName)}\n`
+    if (typeName) result += `- type: ${typeName}\n`
     if (defaultValue) result += `- default: \`${defaultValue.comment}\`\n`
     result += '\n'
     result += getJsDocComment(member.jsDoc) + '\n'
@@ -132,7 +144,6 @@ function formatReactComponentProps (props) {
 function formatFunction (func) {
   const name = func.name.escapedText
   const parameters = func.parameters || []
-  const returnType = getTypeName(func.type)
 
   let result = ''
 
@@ -165,8 +176,8 @@ function formatFunction (func) {
   for (const p of parameters) {
     const isReference = p.type.typeName && p.type.typeName.kind === ts.SyntaxKind.QualifiedName
     const comment = getJsDocComment(ts.getJSDocParameterTags(p)).replace(/^- /, '')
-    const typeName = isReference ? 'object' : getTypeName(p.type)
-    result += `- \`${p.name.escapedText}\` (${formatTypeName(typeName)}, ${p.questionToken ? 'optional' : 'required'})${comment ? ' - ' : ''}${comment}\n`
+    const typeName = isReference ? '`object`' : getFormattedTypeName(p.type)
+    result += `- \`${p.name.escapedText}\` (${typeName}, ${p.questionToken ? 'optional' : 'required'})${comment ? ' - ' : ''}${comment}\n`
 
     if (isReference) {
       const namespaceName = p.type.typeName.left.escapedText
@@ -178,13 +189,13 @@ function formatFunction (func) {
 
       for (const cp of childProperties) {
         const comment = getJsDocComment(cp.jsDoc).replace(/^- /, '')
-        result += `  - \`${cp.name.escapedText}\` (${formatTypeName(getTypeName(cp.type))}, ${cp.questionToken ? 'optional' : 'required'})${comment ? ' - ' : ''}${comment}\n`
+        result += `  - \`${cp.name.escapedText}\` (${getFormattedTypeName(cp.type)}, ${cp.questionToken ? 'optional' : 'required'})${comment ? ' - ' : ''}${comment}\n`
       }
     }
   }
 
   const returnTag = ts.getJSDocReturnTag(func)
-  result += `- returns ${formatTypeName(returnType)}${returnTag ? ` - ${returnTag.comment}` : ''}\n`
+  result += `- returns ${getFormattedTypeName(func.type)}${returnTag ? ` - ${returnTag.comment}` : ''}\n`
 
   const comment = getJsDocComment(func.jsDoc)
   if (comment) {

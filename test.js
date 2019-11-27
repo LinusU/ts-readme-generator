@@ -13,6 +13,7 @@ const fixtures = [
   'react-component-b',
   'react-component-c',
   'react-indeterminate-spinner',
+  'react-spacer',
   'server-accepts-email'
 ]
 
