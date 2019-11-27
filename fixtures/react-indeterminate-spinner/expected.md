@@ -32,7 +32,7 @@ return (
 
 <img src="example.gif" width="160" height="200" />
 
-## Options
+## Props
 
 ### `size`
 

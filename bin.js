@@ -223,7 +223,7 @@ async function main () {
   const props = /** @type {import('typescript').InterfaceDeclaration} */ (children.find(child => child.kind === ts.SyntaxKind.InterfaceDeclaration && child.name.escapedText === 'Props'))
   if (props) {
     const text = formatReactComponentProps(props)
-    await patchReadme(checkMode, 'Options', text)
+    await patchReadme(checkMode, 'Props', text)
     return
   }
 

@@ -8,7 +8,7 @@ Foobar
 npm install --save foobar
 ```
 
-## Options
+## Props
 
 ### `foo`
 
