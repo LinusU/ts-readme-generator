@@ -219,10 +219,8 @@ async function main () {
   const file = ts.createSourceFile('index.d.ts', sourceText, ts.ScriptTarget.ESNext, true)
   const children = file.getChildAt(0).getChildren()
 
-  const interfaces = /** @type {import('typescript').InterfaceDeclaration[]} */ (children.filter(child => child.kind === ts.SyntaxKind.InterfaceDeclaration))
-
   // React Component
-  const props = interfaces.find(child => child.name.escapedText === 'Props')
+  const props = /** @type {import('typescript').InterfaceDeclaration} */ (children.find(child => child.kind === ts.SyntaxKind.InterfaceDeclaration && child.name.escapedText === 'Props'))
   if (props) {
     const text = formatReactComponentProps(props)
     await patchReadme(checkMode, 'Options', text)
