@@ -226,6 +226,7 @@ async function main () {
   if (props) {
     const text = formatReactComponentProps(props)
     await patchReadme(checkMode, 'Options', text)
+    return
   }
 
   // Single Exported Function
@@ -233,6 +234,7 @@ async function main () {
   if (exportAssignments[0] && exportAssignments[0].isExportEquals) {
     const text = formatSingleExportFunction(exportAssignments[0])
     await patchReadme(checkMode, 'API', text)
+    return
   }
 
   // Multiple Exported Functions
@@ -240,7 +242,10 @@ async function main () {
   if (functionDeclarations.length) {
     const text = formatMultipleExportFunction(functionDeclarations)
     await patchReadme(checkMode, 'API', text)
+    return
   }
+
+  throw new UserError('Failed to find anything to document')
 }
 
 main().catch((err) => {
