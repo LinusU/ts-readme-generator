@@ -219,7 +219,7 @@ function formatSingleExportFunction (node) {
  * @param {import('typescript').FunctionDeclaration[]} nodes
  */
 function formatMultipleExportFunction (nodes) {
-  return nodes.map(formatFunction).join('\n\n')
+  return nodes.map(formatFunction).join('\n')
 }
 
 async function main () {
