@@ -77,7 +77,12 @@ function getFormattedTypeName (type) {
   function getGeneric (type) {
     if (type.typeArguments) {
       assert(type.typeArguments.length === 1, 'not implemented')
-      return `\`${getPlainName(type)}<${getPlainName(type.typeArguments[0])}>\``
+
+      if (type.typeArguments[0].kind === ts.SyntaxKind.ArrayType) {
+        return `\`${getPlainName(type)}<Array<${getPlainName(type.typeArguments[0].elementType)}>>\``
+      } else {
+        return `\`${getPlainName(type)}<${getPlainName(type.typeArguments[0])}>\``
+      }
     }
   }
 
@@ -88,12 +93,21 @@ function getFormattedTypeName (type) {
     }
   }
 
+  function getArray (type) {
+    if (type.kind === ts.SyntaxKind.ArrayType) {
+      return `\`Array<${getPlainName(type.elementType)}>\``
+    }
+  }
+
   let result
 
   result = getGeneric(type)
   if (result) return result
 
   result = getUnion(type)
+  if (result) return result
+
+  result = getArray(type)
   if (result) return result
 
   result = getPlainName(type)

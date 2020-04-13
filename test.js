@@ -10,6 +10,7 @@ const bin = path.join(__dirname, 'bin.js')
 const fixtures = [
   'blockhash-core',
   'cwasm-lodepng',
+  'fs-xattr',
   'react-component-a',
   'react-component-b',
   'react-component-c',
