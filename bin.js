@@ -71,6 +71,7 @@ function getFormattedTypeName (type) {
     if (type.kind === ts.SyntaxKind.BooleanKeyword) return 'boolean'
     if (type.kind === ts.SyntaxKind.NumberKeyword) return 'number'
     if (type.kind === ts.SyntaxKind.StringKeyword) return 'string'
+    if (type.kind === ts.SyntaxKind.VoidKeyword) return 'void'
   }
 
   function getGeneric (type) {
@@ -194,8 +195,10 @@ function formatFunction (func) {
     }
   }
 
-  const returnTag = ts.getJSDocReturnTag(func)
-  result += `- returns ${getFormattedTypeName(func.type)}${returnTag ? ` - ${returnTag.comment}` : ''}\n`
+  if (func.type.kind !== ts.SyntaxKind.VoidKeyword) {
+    const returnTag = ts.getJSDocReturnTag(func)
+    result += `- returns ${getFormattedTypeName(func.type)}${returnTag ? ` - ${returnTag.comment}` : ''}\n`
+  }
 
   const comment = getJsDocComment(func.jsDoc)
   if (comment) {
