@@ -125,12 +125,19 @@ function getJsDocComment (jsDoc) {
 
 /**
  * @param {import('typescript').InterfaceDeclaration} props
+ * @returns {[string, string]}
  */
 function formatReactComponentProps (props) {
   let first = true
   let result = ''
+  let apiTypeName = null
 
   for (const member of props.members) {
+    if (member.name.escapedText === 'ref') {
+      apiTypeName = member.type.typeArguments[0].typeName.escapedText
+      continue
+    }
+
     if (first) {
       first = false
     } else {
@@ -150,11 +157,11 @@ function formatReactComponentProps (props) {
     result += getJsDocComment(member.jsDoc) + '\n'
   }
 
-  return result
+  return [result, apiTypeName]
 }
 
 /**
- * @param {import('typescript').FunctionDeclaration} func
+ * @param {import('typescript').FunctionDeclaration | import('typescript').MethodSignature} func
  */
 function formatFunction (func) {
   const name = func.name.escapedText
@@ -233,7 +240,7 @@ function formatSingleExportFunction (node) {
 }
 
 /**
- * @param {import('typescript').FunctionDeclaration[]} nodes
+ * @param {Array<import('typescript').FunctionDeclaration | import('typescript').MethodSignature>} nodes
  */
 function formatMultipleExportFunction (nodes) {
   return nodes.map(formatFunction).join('\n')
@@ -250,8 +257,16 @@ async function main () {
   // React Component
   const props = /** @type {import('typescript').InterfaceDeclaration} */ (children.find(child => child.kind === ts.SyntaxKind.InterfaceDeclaration && child.name.escapedText === 'Props'))
   if (props) {
-    const text = formatReactComponentProps(props)
+    const [text, apiTypeName] = formatReactComponentProps(props)
     await patchReadme(checkMode, 'Props', text)
+
+    if (apiTypeName) {
+      const api = /** @type {import('typescript').InterfaceDeclaration} */ (children.find(child => child.kind === ts.SyntaxKind.InterfaceDeclaration && child.name.escapedText === apiTypeName))
+      const methods = /** @type {import('typescript').MethodSignature[]} */ (api.members.filter(member => member.kind === ts.SyntaxKind.MethodSignature))
+      const text = formatMultipleExportFunction(methods)
+      await patchReadme(checkMode, 'API', text)
+    }
+
     return
   }
 
