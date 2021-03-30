@@ -17,7 +17,8 @@ const fixtures = [
   'react-indeterminate-spinner',
   'react-spacer',
   'react-tinder-card',
-  'server-accepts-email'
+  'server-accepts-email',
+  'to-data-view'
 ]
 
 describe('Generate Readme from TypeScript', () => {

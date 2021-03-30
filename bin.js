@@ -88,8 +88,7 @@ function getFormattedTypeName (type) {
 
   function getUnion (type) {
     if (type.kind === ts.SyntaxKind.UnionType) {
-      assert(type.types.length === 2, 'not implemented')
-      return `\`${getPlainName(type.types[0])}\` or \`${getPlainName(type.types[1])}\``
+      return `\`${type.types.map(type => getPlainName(type)).join(' | ')}\``
     }
   }
 

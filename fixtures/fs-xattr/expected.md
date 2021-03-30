@@ -48,7 +48,7 @@ Synchronous version of `get`.
 
 - `path` (`string`, required)
 - `attr` (`string`, required)
-- `value` (`Buffer` or `string`, required)
+- `value` (`Buffer | string`, required)
 - returns `Promise<void>` - a `Promise` that will resolve when the value has been set.
 
 Set extended attribute `attr` to `value` on file at `path`.
@@ -57,7 +57,7 @@ Set extended attribute `attr` to `value` on file at `path`.
 
 - `path` (`string`, required)
 - `attr` (`string`, required)
-- `value` (`Buffer` or `string`, required)
+- `value` (`Buffer | string`, required)
 
 Synchronous version of `set`.
 

@@ -42,27 +42,27 @@ MyApp                                       Login   Sign Up
 ### `width`
 
 - optional
-- type: `string` or `number`
+- type: `string | number`
 
 The width of the space.
 
 ### `height`
 
 - optional
-- type: `string` or `number`
+- type: `string | number`
 
 The height of the space.
 
 ### `grow`
 
 - optional
-- type: `string` or `number`
+- type: `string | number`
 
 The flex grow factor of the space.
 
 ### `shrink`
 
 - optional
-- type: `string` or `number`
+- type: `string | number`
 
 The flex shrink factor of the space.
