@@ -68,6 +68,7 @@ async function patchReadme (checkMode, heading, body) {
 function getFormattedTypeName (type) {
   function getPlainName (type) {
     if (type.typeName) return type.typeName.escapedText
+    if (type.literal && type.literal.kind === ts.SyntaxKind.StringLiteral) return `'${type.literal.text}'`
     if (type.kind === ts.SyntaxKind.BooleanKeyword) return 'boolean'
     if (type.kind === ts.SyntaxKind.NumberKeyword) return 'number'
     if (type.kind === ts.SyntaxKind.StringKeyword) return 'string'
