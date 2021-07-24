@@ -8,6 +8,7 @@ const path = require('path')
 const bin = path.join(__dirname, 'bin.js')
 
 const fixtures = [
+  'append-field',
   'base32-encode',
   'blockhash-core',
   'cwasm-lodepng',
