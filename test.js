@@ -13,6 +13,7 @@ const fixtures = [
   'blockhash-core',
   'cwasm-lodepng',
   'fs-xattr',
+  'has-own-property',
   'react-component-a',
   'react-component-b',
   'react-component-c',
