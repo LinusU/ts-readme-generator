@@ -233,6 +233,29 @@ function formatFunction (func) {
 }
 
 /**
+ * @param {import('typescript').VariableDeclaration} variable
+ */
+function formatVariable (variable) {
+  assert(variable.declarationList.declarations.length === 1, 'not implemented')
+  const declaration = variable.declarationList.declarations[0]
+
+  let result = ''
+
+  const name = declaration.name.escapedText
+  result += `### \`${name}\`\n`
+
+  const typeName = getFormattedTypeName(declaration.type)
+  result += `\n- type: ${typeName}\n`
+
+  const comment = getJsDocComment(variable.jsDoc)
+  if (comment) {
+    result += `\n${comment}\n`
+  }
+
+  return result
+}
+
+/**
  * @param {import('typescript').ExportAssignment} node
  */
 function formatSingleExportFunction (node) {
@@ -243,10 +266,11 @@ function formatSingleExportFunction (node) {
 }
 
 /**
- * @param {Array<import('typescript').FunctionDeclaration | import('typescript').MethodSignature>} nodes
+ * @param {Array<import('typescript').FunctionDeclaration | import('typescript').MethodSignature>} functions
+ * @param {Array<import('typescript').VariableDeclaration>} variables
  */
-function formatMultipleExportFunction (nodes) {
-  return nodes.map(formatFunction).join('\n')
+function formatMultipleExportFunction (functions, variables) {
+  return [...functions.map(formatFunction), ...variables.map(formatVariable)].join('\n')
 }
 
 async function main () {
@@ -266,7 +290,7 @@ async function main () {
     if (apiTypeName) {
       const api = /** @type {import('typescript').InterfaceDeclaration} */ (children.find(child => child.kind === ts.SyntaxKind.InterfaceDeclaration && child.name.escapedText === apiTypeName))
       const methods = /** @type {import('typescript').MethodSignature[]} */ (api.members.filter(member => member.kind === ts.SyntaxKind.MethodSignature))
-      const text = formatMultipleExportFunction(methods)
+      const text = formatMultipleExportFunction(methods, [])
       await patchReadme(checkMode, 'API', text)
     }
 
@@ -281,10 +305,11 @@ async function main () {
     return
   }
 
-  // Multiple Exported Functions
+  // Multiple Exported Functions / Variables
   const functionDeclarations = /** @type {import('typescript').FunctionDeclaration[]} */ (children.filter(child => child.kind === ts.SyntaxKind.FunctionDeclaration && child.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword)))
-  if (functionDeclarations.length) {
-    const text = formatMultipleExportFunction(functionDeclarations)
+  const variableDeclarations = /** @type {import('typescript').VariableStatement[]} */ (children.filter(child => child.kind === ts.SyntaxKind.VariableStatement && child.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword)))
+  if (functionDeclarations.length || variableDeclarations.length) {
+    const text = formatMultipleExportFunction(functionDeclarations, variableDeclarations)
     await patchReadme(checkMode, 'API', text)
     return
   }

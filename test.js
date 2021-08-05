@@ -9,6 +9,7 @@ const bin = path.join(__dirname, 'bin.js')
 
 const fixtures = [
   'append-field',
+  'aws-has-region',
   'base32-encode',
   'blockhash-core',
   'cwasm-lodepng',
