@@ -194,7 +194,7 @@ function formatFunction (func) {
 
   result += ')`\n'
 
-  if (parameters.length) {
+  if (parameters.length || func.type.kind !== ts.SyntaxKind.VoidKeyword) {
     result += '\n'
   }
 
