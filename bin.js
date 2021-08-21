@@ -75,6 +75,7 @@ function getFormattedTypeName (type) {
     if (type.kind === ts.SyntaxKind.ObjectKeyword) return 'object'
     if (type.kind === ts.SyntaxKind.StringKeyword) return 'string'
     if (type.kind === ts.SyntaxKind.SymbolKeyword) return 'symbol'
+    if (type.kind === ts.SyntaxKind.UnknownKeyword) return 'unknown'
     if (type.kind === ts.SyntaxKind.VoidKeyword) return 'void'
   }
 

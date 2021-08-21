@@ -15,6 +15,7 @@ const fixtures = [
   'cwasm-lodepng',
   'fs-xattr',
   'has-own-property',
+  'load-yaml-file',
   'react-component-a',
   'react-component-b',
   'react-component-c',
