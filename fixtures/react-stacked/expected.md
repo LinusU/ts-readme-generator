@@ -69,8 +69,8 @@ A block of text
 Property | Required | Type | Comment
 -------- | -------- | ---- | -------
 align | optional | `'left' \| 'right' \| 'center' \| 'justify' \| null`
-color | optional | `string`
 overflow | optional | `'ellipsis' \| null`
+color | optional | `string`
 size | optional | `string \| number`
 weight | optional | `'bold'`
 width | optional | `string \| number` | The width of the container.

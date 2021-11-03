@@ -48,12 +48,9 @@ export interface TextStyleProps {
 /** An inline text span */
 export const TextStyle: FC<TextStyleProps>
 
-export interface TextProps extends ContainerProps {
+export interface TextProps extends TextStyleProps, ContainerProps {
   align?: 'left' | 'right' | 'center' | 'justify' | null
-  color?: string
   overflow?: 'ellipsis' | null
-  size?: string | number
-  weight?: 'bold'
 }
 
 /** A block of text */

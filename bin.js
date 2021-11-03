@@ -260,12 +260,15 @@ function formatMultipleReactComponents (components, findInterface) {
       result += `${comment}\n\n`
     }
 
+    const parentMembers = []
     const properties = findInterface(declaration.type.typeArguments[0].typeName.escapedText)
 
-    let parentMembers = []
     if (properties.heritageClauses && properties.heritageClauses.length) {
       assert(component.declarationList.declarations.length === 1, 'not implemented')
-      parentMembers = findInterface(properties.heritageClauses[0].types[0].expression.escapedText).members
+
+      for (const type of properties.heritageClauses[0].types) {
+        parentMembers.push(...findInterface(type.expression.escapedText).members)
+      }
     }
 
     const members = properties.members.concat(parentMembers).map((member) => ({
