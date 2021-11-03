@@ -21,6 +21,7 @@ const fixtures = [
   'react-component-c',
   'react-indeterminate-spinner',
   'react-spacer',
+  'react-stacked',
   'react-tinder-card',
   'server-accepts-email',
   'to-data-view'

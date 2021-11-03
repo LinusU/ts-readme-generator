@@ -25,6 +25,14 @@ const builtInTypeLinks = new Map([
 ])
 
 /**
+ * @param {string} input
+ * @returns {string}
+ */
+function escapeTableCell (input) {
+  return input.replace(/\|/g, '\\|').replace(/\n/g, '<br />')
+}
+
+/**
  * @param {boolean} checkMode
  * @param {string} heading
  * @param {string} body
@@ -71,6 +79,7 @@ function getFormattedTypeName (type) {
     if (type.literal && type.literal.kind === ts.SyntaxKind.StringLiteral) return `'${type.literal.text}'`
     if (type.kind === ts.SyntaxKind.AnyKeyword) return 'any'
     if (type.kind === ts.SyntaxKind.BooleanKeyword) return 'boolean'
+    if (type.kind === ts.SyntaxKind.NullKeyword) return 'null'
     if (type.kind === ts.SyntaxKind.NumberKeyword) return 'number'
     if (type.kind === ts.SyntaxKind.ObjectKeyword) return 'object'
     if (type.kind === ts.SyntaxKind.StringKeyword) return 'string'
@@ -234,6 +243,57 @@ function formatFunction (func) {
 }
 
 /**
+ * @param {import('typescript').VariableStatement[]} components
+ * @param {(name: string) => import('typescript').InterfaceDeclaration} findInterface
+ */
+function formatMultipleReactComponents (components, findInterface) {
+  let result = ''
+
+  for (const component of components) {
+    assert(component.declarationList.declarations.length === 1, 'not implemented')
+    const declaration = component.declarationList.declarations[0]
+
+    result += `### \`<${declaration.name.escapedText}>\`\n\n`
+
+    const comment = getJsDocComment(component.jsDoc)
+    if (comment) {
+      result += `${comment}\n\n`
+    }
+
+    const properties = findInterface(declaration.type.typeArguments[0].typeName.escapedText)
+
+    let parentMembers = []
+    if (properties.heritageClauses && properties.heritageClauses.length) {
+      assert(component.declarationList.declarations.length === 1, 'not implemented')
+      parentMembers = findInterface(properties.heritageClauses[0].types[0].expression.escapedText).members
+    }
+
+    const members = properties.members.concat(parentMembers).map((member) => ({
+      name: member.name.escapedText,
+      required: member.questionToken ? 'optional' : 'required',
+      typeName: getFormattedTypeName(member.type),
+      defaultValue: ((member.jsDoc && member.jsDoc[0].tags) || []).find(tag => tag.tagName.escapedText === 'default'),
+      comment: getJsDocComment(member.jsDoc)
+    }))
+
+    const someDefaultValues = members.some(member => member.defaultValue)
+    const someComments = members.some(member => member.comment)
+
+    result += `Property | Required | Type${someDefaultValues ? ' | Default' : ''}${someComments ? ' | Comment' : ''}\n`
+    result += `-------- | -------- | ----${someDefaultValues ? ' | -------' : ''}${someComments ? ' | -------' : ''}\n`
+    for (const member of members) {
+      result += `${escapeTableCell(member.name)} | ${escapeTableCell(member.required)} | ${escapeTableCell(member.typeName)}`
+      if (someDefaultValues) result += ` | ${escapeTableCell(member.defaultValue ? member.defaultValue.comment : '')}`
+      if (someComments && member.comment) result += ` | ${escapeTableCell(member.comment)}`
+      result += '\n'
+    }
+    result += '\n'
+  }
+
+  return result
+}
+
+/**
  * @param {import('typescript').VariableDeclaration} variable
  */
 function formatVariable (variable) {
@@ -282,8 +342,13 @@ async function main () {
   const file = ts.createSourceFile('index.d.ts', sourceText, ts.ScriptTarget.ESNext, true)
   const children = file.getChildAt(0).getChildren()
 
-  // React Component
-  const props = /** @type {import('typescript').InterfaceDeclaration} */ (children.find(child => child.kind === ts.SyntaxKind.InterfaceDeclaration && child.name.escapedText === 'Props'))
+  /** @returns {import('typescript').InterfaceDeclaration} */
+  function findInterface (name) {
+    return children.find(child => child.kind === ts.SyntaxKind.InterfaceDeclaration && child.name.escapedText === name)
+  }
+
+  // Single React Component
+  const props = findInterface('Props')
   if (props) {
     const [text, apiTypeName] = formatReactComponentProps(props)
     await patchReadme(checkMode, 'Props', text)
@@ -295,6 +360,14 @@ async function main () {
       await patchReadme(checkMode, 'API', text)
     }
 
+    return
+  }
+
+  // Multiple React Components
+  const components = /** @type {import('typescript').VariableStatement[]} */ (children.filter(child => child.kind === ts.SyntaxKind.VariableStatement && child.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword) && child.declarationList && child.declarationList.declarations[0].type.typeName && child.declarationList.declarations[0].type.typeName.escapedText === 'FC'))
+  if (components.length) {
+    const text = formatMultipleReactComponents(components, findInterface)
+    await patchReadme(checkMode, 'Components', text)
     return
   }
 
