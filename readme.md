@@ -23,3 +23,19 @@ You can also run the script in "check mode" to make it exit with a non-zero stat
 ```sh
 ts-readme-generator --check
 ```
+
+## Examples
+
+Check out these projects using `ts-readme-generator`:
+
+- [`@cwasm/lodepng`](https://github.com/LinusU/cwasm-lodepng)
+- [`append-field`](https://github.com/LinusU/node-append-field)
+- [`base32-encode`](https://github.com/LinusU/base32-encode)
+- [`fs-xattr`](https://github.com/LinusU/fs-xattr)
+- [`load-yaml-file`](https://github.com/LinusU/load-yaml-file)
+- [`react-stacked`](https://github.com/LinusU/react-stacked)
+- [`react-tinder-card`](https://github.com/3DJakob/react-tinder-card)
+- [`server-accepts-email`](https://github.com/LinusU/server-accepts-email)
+- [`to-data-view`](https://github.com/LinusU/to-data-view)
+
+If you are using this in a public project, please send a PR to add it to this list!
