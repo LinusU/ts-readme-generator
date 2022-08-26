@@ -112,6 +112,12 @@ function getFormattedTypeName (type) {
     }
   }
 
+  function getReference (type) {
+    if (type.kind === ts.SyntaxKind.TypeReference && type.typeName.kind === ts.SyntaxKind.QualifiedName) {
+      return `\`${type.typeName.left.escapedText}.${type.typeName.right.escapedText}\``
+    }
+  }
+
   let result
 
   result = getGeneric(type)
@@ -125,6 +131,9 @@ function getFormattedTypeName (type) {
 
   result = getPlainName(type)
   if (result) return builtInTypeLinks.has(result) ? `[\`${result}\`](${builtInTypeLinks.get(result)})` : `\`${result}\``
+
+  result = getReference(type)
+  if (result) return result
 
   assert(false, 'not implemented')
 }

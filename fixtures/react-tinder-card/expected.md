@@ -64,6 +64,13 @@ Callback that will be executed when a `TinderCard` has left the screen. It will 
 
 An array of directions for which to prevent swiping out of screen. Valid arguments are `'left'`, `'right'`, `'up'` and `'down'`.
 
+### `children`
+
+- optional
+- type: `React.ReactNode`
+
+The children passed in is what will be rendered as the actual Tinder-style card.
+
 ## API
 
 ### `swipe(dir)`

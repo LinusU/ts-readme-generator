@@ -39,6 +39,11 @@ declare interface Props {
    * @default []
    */
   preventSwipe?: string[]
+
+  /**
+   * The children passed in is what will be rendered as the actual Tinder-style card.
+   */
+  children?: React.ReactNode
 }
 
 declare const TinderCard: React.FC<Props>
