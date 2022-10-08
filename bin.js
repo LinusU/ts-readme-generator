@@ -80,6 +80,7 @@ function getFormattedPlainName (name) {
 function getFormattedTypeName (type) {
   function getPlainName (type) {
     if (type.typeName) return type.typeName.escapedText
+    if (type.literal && type.literal.kind === ts.SyntaxKind.NumericLiteral) return `${type.literal.text}`
     if (type.literal && type.literal.kind === ts.SyntaxKind.StringLiteral) return `'${type.literal.text}'`
     if (type.kind === ts.SyntaxKind.AnyKeyword) return 'any'
     if (type.kind === ts.SyntaxKind.BooleanKeyword) return 'boolean'
