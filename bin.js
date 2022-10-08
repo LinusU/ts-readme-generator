@@ -73,9 +73,14 @@ async function patchReadme (checkMode, heading, body) {
   }
 }
 
+function getFormattedPlainName (name) {
+  return builtInTypeLinks.has(name) ? `[\`${name}\`](${builtInTypeLinks.get(name)})` : `\`${name}\``
+}
+
 function getFormattedTypeName (type) {
   function getPlainName (type) {
     if (type.typeName) return type.typeName.escapedText
+    if (type.literal && type.literal.kind === ts.SyntaxKind.NumericLiteral) return `${type.literal.text}`
     if (type.literal && type.literal.kind === ts.SyntaxKind.StringLiteral) return `'${type.literal.text}'`
     if (type.kind === ts.SyntaxKind.AnyKeyword) return 'any'
     if (type.kind === ts.SyntaxKind.BooleanKeyword) return 'boolean'
@@ -130,7 +135,7 @@ function getFormattedTypeName (type) {
   if (result) return result
 
   result = getPlainName(type)
-  if (result) return builtInTypeLinks.has(result) ? `[\`${result}\`](${builtInTypeLinks.get(result)})` : `\`${result}\``
+  if (result) return getFormattedPlainName(result)
 
   result = getReference(type)
   if (result) return result
@@ -143,6 +148,39 @@ function getFormattedTypeName (type) {
  */
 function getJsDocComment (jsDoc) {
   return ((jsDoc && jsDoc[0] && jsDoc[0].comment) || '')
+}
+
+/**
+ * @param {readonly import('typescript').JSDocTag[]} jsDoc
+ * @returns {string[]}
+ */
+function getJsDocExamples (jsDoc) {
+  if (!jsDoc || !jsDoc[0] || !jsDoc[0].tags) return []
+  const tags = jsDoc[0].tags.filter(tag => tag.tagName.escapedText === 'example')
+  return tags.map(tag => tag.comment)
+}
+
+/**
+ * @param {readonly import('typescript').JSDocTag[]} jsDoc
+ * @returns {string[]}
+ */
+function getJsDocNotes (jsDoc) {
+  if (!jsDoc || !jsDoc[0] || !jsDoc[0].tags) return []
+  const tags = jsDoc[0].tags.filter(tag => tag.tagName.escapedText === 'note')
+  return tags.map(tag => tag.comment)
+}
+
+/**
+ * @param {readonly import('typescript').JSDocTag[]} jsDoc
+ * @returns {{ comment: string, type: string | null } | null}
+ */
+function getJsDocThrows (jsDoc) {
+  if (!jsDoc || !jsDoc[0] || !jsDoc[0].tags) return null
+  const tag = jsDoc[0].tags.find(tag => tag.tagName.escapedText === 'throws')
+  if (!tag) return null
+
+  const match = /^(\{([A-Za-z0-9]+)\})?\s*(.*)/.exec(tag.comment)
+  return { comment: match[3], type: match[2] || null }
 }
 
 /**
@@ -243,9 +281,29 @@ function formatFunction (func) {
     result += `- returns ${getFormattedTypeName(func.type)}${returnTag ? ` - ${returnTag.comment}` : ''}\n`
   }
 
+  const throws = getJsDocThrows(func.jsDoc)
+  if (throws) {
+    if (throws.type) {
+      result += `- throws ${getFormattedPlainName(throws.type)} - ${throws.comment}\n`
+    } else {
+      result += `- throws ${throws.comment}\n`
+    }
+  }
+
   const comment = getJsDocComment(func.jsDoc)
   if (comment) {
     result += `\n${comment}\n`
+  }
+
+  const notes = getJsDocNotes(func.jsDoc)
+  for (const note of notes) {
+    result += `\nNote: ${note}\n`
+  }
+
+  const examples = getJsDocExamples(func.jsDoc)
+  if (examples.length > 0) {
+    result += '\nExample:\n\n'
+    result += examples.join('\n\n') + '\n'
   }
 
   return result

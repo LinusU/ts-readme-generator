@@ -39,6 +39,7 @@ console.log(data)
 
 - `path` (`string | Buffer | URL`, required)
 - returns `unknown` - the parsed YAML
+- throws `YAMLException` - if the file does not contain valid YAML
 
 ## Related
 
