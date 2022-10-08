@@ -162,6 +162,16 @@ function getJsDocExamples (jsDoc) {
 
 /**
  * @param {readonly import('typescript').JSDocTag[]} jsDoc
+ * @returns {string[]}
+ */
+function getJsDocNotes (jsDoc) {
+  if (!jsDoc || !jsDoc[0] || !jsDoc[0].tags) return []
+  const tags = jsDoc[0].tags.filter(tag => tag.tagName.escapedText === 'note')
+  return tags.map(tag => tag.comment)
+}
+
+/**
+ * @param {readonly import('typescript').JSDocTag[]} jsDoc
  * @returns {{ comment: string, type: string | null } | null}
  */
 function getJsDocThrows (jsDoc) {
@@ -283,6 +293,11 @@ function formatFunction (func) {
   const comment = getJsDocComment(func.jsDoc)
   if (comment) {
     result += `\n${comment}\n`
+  }
+
+  const notes = getJsDocNotes(func.jsDoc)
+  for (const note of notes) {
+    result += `\nNote: ${note}\n`
   }
 
   const examples = getJsDocExamples(func.jsDoc)
