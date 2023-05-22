@@ -1,0 +1,6 @@
+{
+  "extends": "@voxpelli/tsconfig/node16.json",
+  "files": [
+    "bin.js",
+  ]
+}
