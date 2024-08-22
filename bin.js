@@ -184,6 +184,15 @@ function getJsDocThrows (jsDoc) {
 }
 
 /**
+ * @param {readonly import('typescript').JSDocTag[]} jsDoc
+ * @returns {string[]}
+ */
+function hasJsDocIgnore (jsDoc) {
+  if (!jsDoc || !jsDoc[0] || !jsDoc[0].tags) return false
+  return jsDoc[0].tags.some(tag => tag.tagName.escapedText === 'ignore')
+}
+
+/**
  * @param {import('typescript').InterfaceDeclaration} props
  * @returns {[string, string]}
  */
@@ -195,6 +204,10 @@ function formatReactComponentProps (props) {
   for (const member of props.members) {
     if (member.name.escapedText === 'ref') {
       apiTypeName = member.type.typeArguments[0].typeName.escapedText
+      continue
+    }
+
+    if (hasJsDocIgnore(member.jsDoc)) {
       continue
     }
 
@@ -338,7 +351,9 @@ function formatMultipleReactComponents (components, findInterface) {
       }
     }
 
-    const members = properties.members.concat(parentMembers).map((member) => ({
+    const members = properties.members.concat(parentMembers).filter((member) => {
+      return !hasJsDocIgnore(member.jsDoc)
+    }).map((member) => ({
       name: member.name.escapedText,
       required: member.questionToken ? 'optional' : 'required',
       typeName: getFormattedTypeName(member.type),

@@ -5,4 +5,7 @@ declare interface Props {
    * @default 'Test'
    */
   foo?: string
+
+  /** @ignore */
+  children?: React.ReactNode
 }

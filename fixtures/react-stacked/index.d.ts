@@ -37,6 +37,11 @@ interface ContainerProps {
   borderTopRightRadius?: number
 
   backgroundColor?: string
+
+  /** @ignore */
+  children?: React.ReactNode
+  /** @ignore */
+  className?: string
 }
 
 export interface TextStyleProps {
