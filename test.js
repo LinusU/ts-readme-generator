@@ -24,6 +24,7 @@ const fixtures = [
   'react-stacked',
   'react-tinder-card',
   'server-accepts-email',
+  'tn1150',
   'to-data-view'
 ]
 

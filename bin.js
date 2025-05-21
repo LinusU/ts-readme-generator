@@ -82,6 +82,7 @@ function getFormattedTypeName (type) {
     if (type.typeName) return type.typeName.escapedText
     if (type.literal && type.literal.kind === ts.SyntaxKind.NumericLiteral) return `${type.literal.text}`
     if (type.literal && type.literal.kind === ts.SyntaxKind.StringLiteral) return `'${type.literal.text}'`
+    if (type.literal && type.literal.kind === ts.SyntaxKind.PrefixUnaryExpression && type.literal.operator === ts.SyntaxKind.MinusToken && type.literal.operand.kind === ts.SyntaxKind.NumericLiteral) return `-${type.literal.operand.text}`
     if (type.kind === ts.SyntaxKind.AnyKeyword) return 'any'
     if (type.kind === ts.SyntaxKind.BooleanKeyword) return 'boolean'
     if (type.kind === ts.SyntaxKind.NullKeyword) return 'null'
